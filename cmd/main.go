@@ -8,6 +8,15 @@ import (
 
 func main() {
 	config.GetEnv()
-	fmt.Printf("App is starting")
+
+	var input string
+	var optionString string = "Choose and option:\n1 - Read an audio file and transcript it.\n2 - Record your voice from audio device and then transciprt it."
+	fmt.Print(optionString)
+	fmt.Scanln(&input)
+
+	switch input {
+	case "2":
+		audio.Listen()
+	}
 	audio.Listen()
 }
