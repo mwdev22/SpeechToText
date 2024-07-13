@@ -17,7 +17,7 @@ const (
 
 var audioBuffer []int32
 
-func Listen() {
+func Listen() string {
 	err := portaudio.Initialize()
 	if err != nil {
 		log.Fatalf("failed to initialize: %s", err)
@@ -74,7 +74,7 @@ func Listen() {
 
 	fmt.Println("Audio capturing finished.")
 
-	SaveToWavFile(audioBuffer)
+	return SaveToWavFile(audioBuffer)
 }
 
 func processAudio(in []int32) {

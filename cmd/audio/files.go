@@ -40,7 +40,7 @@ func getFileDir() string {
 	return path
 }
 
-func SaveToWavFile(data []int32) {
+func SaveToWavFile(data []int32) string {
 
 	file, err := os.Create("output.wav")
 	if err != nil {
@@ -65,4 +65,18 @@ func SaveToWavFile(data []int32) {
 	}
 
 	log.Println("WAV file saved.")
+	return file.Name()
+}
+
+func ReadWavFile(filename string) []byte {
+
+	if !filepath.IsAbs(filename) {
+		filename = filepath.Join(FILES_DIR, filename)
+	}
+
+	file, err := os.ReadFile(filename)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return file
 }
