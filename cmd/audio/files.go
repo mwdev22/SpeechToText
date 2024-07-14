@@ -2,6 +2,7 @@ package audio
 
 import (
 	"encoding/binary"
+	"fmt"
 	"log"
 	"os"
 	"os/exec"
@@ -79,4 +80,20 @@ func ReadWavFile(filename string) []byte {
 		log.Fatal(err)
 	}
 	return file
+}
+
+func SaveTranscription(filename, transcription string) (string, error) {
+	fullPath := filepath.Join(FILES_DIR, filename+".txt")
+
+	file, err := os.Create(fullPath)
+	if err != nil {
+		return "", err
+	}
+	l, err := file.WriteString(transcription)
+	if err != nil {
+		return "", err
+	}
+	fmt.Printf("%v bytes written successfully.", l)
+
+	return fullPath, nil
 }

@@ -63,6 +63,9 @@ func Listen() string {
 	}
 
 	defer stream.Close()
+	fmt.Print("Enter number of seconds to determine recording time...")
+	var sec string
+	fmt.Scanln(&sec)
 
 	fmt.Println("Listening for 10 seconds...")
 	time.Sleep(10 * time.Second)

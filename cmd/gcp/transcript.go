@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"speech_to_text/cmd/audio"
+	"strings"
 
 	speech "cloud.google.com/go/speech/apiv1"
 	"cloud.google.com/go/speech/apiv1/speechpb"
@@ -21,7 +22,7 @@ func TranscriptFile(filename string) {
 	}
 	defer client.Close()
 
-	audio := &speechpb.RecognitionAudio{
+	audioContent := &speechpb.RecognitionAudio{
 		AudioSource: &speechpb.RecognitionAudio_Content{
 			Content: audioBytes,
 		},
@@ -34,15 +35,19 @@ func TranscriptFile(filename string) {
 
 	resp, err := client.Recognize(ctx, &speechpb.RecognizeRequest{
 		Config: config,
-		Audio:  audio,
+		Audio:  audioContent,
 	})
 	if err != nil {
 		log.Fatalf("Failed to recognize speech: %v", err)
 	}
 
+	var transcription string
 	for _, result := range resp.Results {
 		for _, alt := range result.Alternatives {
 			fmt.Printf("Recognized text: %s\n", alt.Transcript)
+			transcription += alt.Transcript
+			transcription += "\n"
 		}
 	}
+	audio.SaveTranscription(strings.TrimRight(filename, ".wav"), transcription)
 }
