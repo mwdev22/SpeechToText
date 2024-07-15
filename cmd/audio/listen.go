@@ -3,7 +3,7 @@ package audio
 import (
 	"fmt"
 	"log"
-	"speech_to_text/cmd/config"
+	"strconv"
 	"time"
 
 	"github.com/gordonklaus/portaudio"
@@ -30,13 +30,22 @@ func Listen() string {
 		log.Fatalf("failed to get devices: %v", err)
 	}
 
-	// find the specified in .env device
+	// list the audio devices for user to pick
 	var inputDevice *portaudio.DeviceInfo
-	for _, device := range devices {
-		if device.Name == config.DeviceName {
-			inputDevice = device
-		}
+	for i, device := range devices {
+		fmt.Printf("%v. %s\n", i, device.Name)
 	}
+
+	fmt.Print("Enter number of input audio device...\n")
+	var devNum string
+	fmt.Scanln(&devNum)
+
+	dev, err := strconv.Atoi(devNum)
+	if err != nil {
+		log.Fatalf("invalid number of device: %d", dev)
+	}
+
+	inputDevice = devices[dev]
 
 	if inputDevice == nil {
 		log.Fatalf("failed to find the specified audio device")
@@ -57,25 +66,30 @@ func Listen() string {
 		log.Fatalf("failed to open audio stream: %v", err)
 	}
 
+	fmt.Print("Enter number of seconds to determine recording time...\n")
+	var sec string
+	fmt.Scanln(&sec)
+	seconds, err := strconv.Atoi(sec)
+	if err != nil || seconds <= 0 {
+		log.Fatalf("invalid input for seconds: %s", sec)
+	}
+
 	err = stream.Start()
 	if err != nil {
 		log.Fatalf("failed to start audio stream: %s", err)
 	}
 
 	defer stream.Close()
-	fmt.Print("Enter number of seconds to determine recording time...")
-	var sec string
-	fmt.Scanln(&sec)
 
-	fmt.Println("Listening for 10 seconds...")
-	time.Sleep(10 * time.Second)
+	fmt.Printf("Listening for %d seconds...\n", seconds)
+	time.Sleep(time.Duration(seconds) * time.Second)
 
 	err = stream.Stop()
 	if err != nil {
 		log.Fatalf("Failed to stop audio stream: %v", err)
 	}
 
-	fmt.Println("Audio capturing finished.")
+	fmt.Print("Audio capturing finished.\n")
 
 	return SaveToWavFile(audioBuffer)
 }

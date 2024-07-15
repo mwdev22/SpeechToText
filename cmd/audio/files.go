@@ -12,19 +12,19 @@ import (
 	"github.com/youpy/go-wav"
 )
 
-var FILES_DIR string = getFileDir()
+var FilesDir string = getFileDir()
 
 func getFileDir() string {
 	cmd := exec.Command("go", "env", "GOMOD")
 	output, err := cmd.Output()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
 	goModPath := strings.TrimSpace(string(output))
 
 	if goModPath == "" {
-		panic("go.mod file not found")
+		log.Fatalf("go.mod file not found")
 	}
 
 	moduleDir := filepath.Dir(goModPath)
@@ -34,7 +34,7 @@ func getFileDir() string {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		err := os.Mkdir(path, os.ModePerm)
 		if err != nil {
-			panic(err)
+			log.Fatal(err)
 		}
 	}
 
@@ -42,20 +42,28 @@ func getFileDir() string {
 }
 
 func SaveToWavFile(data []int32) string {
+	// saving file in audio directory
+	var fname string
+	fmt.Print("Enter the name of the recording file...\n")
+	fmt.Scanln(&fname)
+	fname = fname + ".wav"
 
-	file, err := os.Create("output.wav")
+	filePath := filepath.Join(FilesDir, fname)
+
+	file, err := os.Create(filePath)
 	if err != nil {
 		log.Fatalf("Failed to create WAV file: %v", err)
 	}
 	defer file.Close()
 
+	// uint types converting, cause NewWriter args are not generic
 	w := wav.NewWriter(file, uint32(len(data)), uint16(Channels), uint32(Rate), 16)
 
 	// convert int32 audio data to int16 byte slice with proper scaling
 	buf := make([]byte, len(data)*2) // 2 bytes per sample for int16
 	for i := 0; i < len(data); i++ {
 		sample := data[i]
-		// scale down from int32 to int16
+		// scale down from int32 to int16, with right shift
 		scaledSample := int16(sample >> 16) // reduces the sample value to fit within the int16 range
 		binary.LittleEndian.PutUint16(buf[i*2:], uint16(scaledSample))
 	}
@@ -66,13 +74,33 @@ func SaveToWavFile(data []int32) string {
 	}
 
 	log.Println("WAV file saved.")
-	return file.Name()
+	if _, err := w.Write(buf); err != nil {
+		log.Fatalf("Failed to write data to WAV file: %v", err)
+	}
+
+	// close the file to ensure all data is written and flushed to disk
+	err = file.Close()
+	if err != nil {
+		log.Fatalf("Failed to close WAV file: %v", err)
+	}
+
+	// let file info to determine the file size
+	fileInfo, err := os.Stat(filePath)
+	if err != nil {
+		log.Fatalf("Failed to get file info: %v", err)
+	}
+
+	// log the file size in bytes
+	fileSize := fileInfo.Size()
+	log.Printf("WAV file %s saved. Size: %d bytes.\n", fileInfo.Name(), fileSize)
+
+	return fileInfo.Name()
 }
 
 func ReadWavFile(filename string) []byte {
 
 	if !filepath.IsAbs(filename) {
-		filename = filepath.Join(FILES_DIR, filename)
+		filename = filepath.Join(FilesDir, filename)
 	}
 
 	file, err := os.ReadFile(filename)
@@ -83,14 +111,16 @@ func ReadWavFile(filename string) []byte {
 }
 
 func SaveTranscription(filename, transcription string) (string, error) {
-	fullPath := filepath.Join(FILES_DIR, filename+".txt")
+	fullPath := filepath.Join(FilesDir, filename+".txt")
 
 	file, err := os.Create(fullPath)
 	if err != nil {
+		log.Fatal(err)
 		return "", err
 	}
 	l, err := file.WriteString(transcription)
 	if err != nil {
+		log.Fatal(err)
 		return "", err
 	}
 	fmt.Printf("%v bytes written successfully.", l)

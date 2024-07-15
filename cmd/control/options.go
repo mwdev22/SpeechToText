@@ -13,8 +13,8 @@ func ListenAndTranscript() {
 
 func Transcript() {
 	var input string
-	fmt.Print("Enter absolut filepath or filename from /audio directory.")
+	fmt.Print("Enter absolute filepath or filename from /audio directory...\n")
 	fmt.Scanln(&input)
-	fmt.Printf("Transcripting %s file...", input)
+	fmt.Printf("Opening %s file...\n", input)
 	gcp.TranscriptFile(input)
 }
