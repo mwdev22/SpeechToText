@@ -1,9 +1,9 @@
-# Project variables
+# project variables
 PROJECT_NAME := speech_to_text
 PKG := ./cmd/...
 MAIN := ./cmd/main.go
 
-# Go commands
+# go commands
 BUILD := go build
 CLEAN := go clean
 FMT := go fmt
@@ -11,7 +11,7 @@ VET := go vet
 TEST := go test
 RUN := go run
 
-# Targets
+# targets
 .PHONY: all build clean fmt vet test run
 
 all: fmt vet test build

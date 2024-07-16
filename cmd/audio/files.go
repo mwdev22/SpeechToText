@@ -12,9 +12,10 @@ import (
 	"github.com/youpy/go-wav"
 )
 
-var FilesDir string = getFileDir()
+var AudioDir string = getFileDir("audio_files")
+var TranscriptionDir string = getFileDir("transcriptions")
 
-func getFileDir() string {
+func getFileDir(dirname string) string {
 	cmd := exec.Command("go", "env", "GOMOD")
 	output, err := cmd.Output()
 	if err != nil {
@@ -29,7 +30,7 @@ func getFileDir() string {
 
 	moduleDir := filepath.Dir(goModPath)
 
-	path := filepath.Join(moduleDir, "audio_files")
+	path := filepath.Join(moduleDir, dirname)
 
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		err := os.Mkdir(path, os.ModePerm)
@@ -48,7 +49,7 @@ func SaveToWavFile(data []int32) string {
 	fmt.Scanln(&fname)
 	fname = fname + ".wav"
 
-	filePath := filepath.Join(FilesDir, fname)
+	filePath := filepath.Join(AudioDir, fname)
 
 	file, err := os.Create(filePath)
 	if err != nil {
@@ -97,21 +98,21 @@ func SaveToWavFile(data []int32) string {
 	return fileInfo.Name()
 }
 
-func ReadWavFile(filename string) []byte {
+func ReadWavFile(filename string) *[]byte {
 
 	if !filepath.IsAbs(filename) {
-		filename = filepath.Join(FilesDir, filename)
+		filename = filepath.Join(AudioDir, filename)
 	}
 
 	file, err := os.ReadFile(filename)
 	if err != nil {
 		log.Fatal(err)
 	}
-	return file
+	return &file
 }
 
 func SaveTranscription(filename, transcription string) (string, error) {
-	fullPath := filepath.Join(FilesDir, filename+".txt")
+	fullPath := filepath.Join(TranscriptionDir, filename+".txt")
 
 	file, err := os.Create(fullPath)
 	if err != nil {

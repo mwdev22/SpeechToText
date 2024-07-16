@@ -55,7 +55,7 @@ func TranscriptFile(filename string) {
 
 	audioContent := &speechpb.RecognitionAudio{
 		AudioSource: &speechpb.RecognitionAudio_Content{
-			Content: audioBytes,
+			Content: *audioBytes,
 		},
 	}
 	config := &speechpb.RecognitionConfig{
